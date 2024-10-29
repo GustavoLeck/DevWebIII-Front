@@ -6,13 +6,13 @@ import CadastroCliente from "../views/cliente/cadastro-clientes.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: "/home",
+    path: "/",
     name: "Home",
     component: Home,
     meta: { title: "Página Inicial" },
   },
   {
-    path: "/",
+    path: "/home",
     name: "Home",
     component: Home,
     meta: { title: "Página Inicial" },

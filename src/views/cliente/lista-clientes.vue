@@ -1,4 +1,3 @@
-<!-- src/components/RegistroList.vue -->
 <template>
     <div class="registro-list">
       <h2>Lista de Registros</h2>

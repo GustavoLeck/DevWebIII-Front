@@ -1,23 +1,22 @@
 <!-- src/views/CadastroClientes.vue -->
 <template>
   <div class="cadastro-clientes">
-    <h2>Cadastro de Clientes</h2>
-    <form @submit.prevent="submitForm">
+    <form @submit.prevent="createCliente">
       <div class="grid-container">
         <div class="form-group">
           <label for="cnpj">CNPJ:</label>
-          <input type="text" id="cnpj" v-model="cliente.cnpj" required />
+          <input type="text" id="cnpj" v-model="clienteForm.cnpj" required />
         </div>
         <div class="form-group">
           <label for="nome">Nome:</label>
-          <input type="text" id="nome" v-model="cliente.nome" required />
+          <input type="text" id="nome" v-model="clienteForm.nome" required />
         </div>
         <div class="form-group">
           <label for="fornecedor_id">Fornecedor ID:</label>
           <input
             type="text"
             id="fornecedor_id"
-            v-model="cliente.fornecedor_id"
+            v-model="clienteForm.fornecedor_id"
           />
         </div>
       </div>
@@ -30,34 +29,44 @@
           <input
             type="text"
             id="bairro_cob"
-            v-model="cliente.bairro_cob"
+            v-model="clienteForm.bairro_cob"
             required
           />
         </div>
         <div class="form-group">
           <label for="cep_cob">CEP:</label>
-          <input type="text" id="cep_cob" v-model="cliente.cep_cob" required />
+          <input
+            type="text"
+            id="cep_cob"
+            v-model="clienteForm.cep_cob"
+            required
+          />
         </div>
         <div class="form-group">
           <label for="cidade_cob">Cidade:</label>
           <input
             type="text"
             id="cidade_cob"
-            v-model="cliente.cidade_cob"
+            v-model="clienteForm.cidade_cob"
             required
           />
         </div>
 
         <div class="form-group">
           <label for="rua_cob">Rua:</label>
-          <input type="text" id="rua_cob" v-model="cliente.rua_cob" required />
+          <input
+            type="text"
+            id="rua_cob"
+            v-model="clienteForm.rua_cob"
+            required
+          />
         </div>
         <div class="form-group">
           <label for="estado_cob">Estado:</label>
           <input
             type="text"
             id="estado_cob"
-            v-model="cliente.estado_cob"
+            v-model="clienteForm.estado_cob"
             required
           />
         </div>
@@ -66,17 +75,17 @@
           <input
             type="text"
             id="pais_cob"
-            v-model="cliente.pais_cob"
+            v-model="clienteForm.pais_cob"
             required
           />
         </div>
         <div class="form-group"></div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label for="complemento_cob">Complemento:</label>
           <input
             type="text"
             id="complemento_ent"
-            v-model="cliente.complemento_ent"
+            v-model="clienteForm.complemento_cob"
           />
         </div>
       </div>
@@ -89,20 +98,25 @@
           <input
             type="text"
             id="bairro_ent"
-            v-model="cliente.bairro_ent"
+            v-model="clienteForm.bairro_ent"
             required
           />
         </div>
         <div class="form-group">
           <label for="cep_ent">CEP:</label>
-          <input type="text" id="cep_ent" v-model="cliente.cep_ent" required />
+          <input
+            type="text"
+            id="cep_ent"
+            v-model="clienteForm.cep_ent"
+            required
+          />
         </div>
         <div class="form-group">
           <label for="cidade_ent">Cidade:</label>
           <input
             type="text"
             id="cidade_ent"
-            v-model="cliente.cidade_ent"
+            v-model="clienteForm.cidade_ent"
             required
           />
         </div>
@@ -111,16 +125,15 @@
           <input
             type="text"
             id="complemento_ent"
-            v-model="cliente.complemento_ent"
+            v-model="clienteForm.rua_ent"
           />
         </div>
-
         <div class="form-group">
           <label for="estado_ent">Estado:</label>
           <input
             type="text"
             id="estado_ent"
-            v-model="cliente.estado_ent"
+            v-model="clienteForm.estado_ent"
             required
           />
         </div>
@@ -129,30 +142,34 @@
           <input
             type="text"
             id="pais_ent"
-            v-model="cliente.pais_ent"
+            v-model="clienteForm.pais_ent"
             required
           />
         </div>
         <div class="form-group"></div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label for="complemento_ent">Complemento:</label>
           <input
             type="text"
             id="complemento_ent"
-            v-model="cliente.complemento_ent"
+            v-model="clienteForm.complemento_ent"
           />
         </div>
-      </div>
+        <div class="form-group"></div>
 
-      <button type="submit">Cadastrar Cliente</button>
+        <button class="button" type="submit" :disabled="isSubmitting">
+          Cadastrar Cliente
+        </button>
+      </div>
     </form>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import axios from "axios";
 
-interface Cliente {
+interface clienteForm {
   cnpj: string;
   nome: string;
   fornecedor_id: string;
@@ -175,7 +192,8 @@ interface Cliente {
 export default defineComponent({
   name: "CadastroClientes",
   setup() {
-    const cliente = ref<Cliente>({
+    const isSubmitting = ref(false);
+    const clienteForm = ref<clienteForm>({
       cnpj: "",
       nome: "",
       fornecedor_id: "",
@@ -195,24 +213,67 @@ export default defineComponent({
       rua_ent: "",
     });
 
-    const submitForm = () => {
-      // Aqui você pode adicionar a lógica para enviar os dados para o backend
-      console.log("Dados do cliente:", cliente.value);
-      // Faça a requisição POST para o seu backend aqui
+    const createCliente = async () => {
+      // if (isSubmitting.value) return;
+      // isSubmitting.value = true;
+      try {
+        const response = await axios.post(
+          "http://localhost:5052/api/cliente/create",
+          clienteForm.value
+        );
+        console.log(response);
+      } catch (error) {
+        console.error("Erro ao enviar:", error);
+      }
     };
 
     return {
-      cliente,
-      submitForm,
+      clienteForm,
+      createCliente,
+      isSubmitting,
     };
   },
 });
 </script>
 
 <style scoped>
+.button {
+  padding: 10px 20px;
+  background-color: #3498db; /* Azul claro */
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 25px;
+  margin-right: 50px;
+  margin-left: 25px;
+}
+
+.button:hover {
+  background-color: #2980b9; /* Azul um pouco mais escuro */
+  transform: translateY(-2px); /* Leve elevação */
+}
+
+.button:active {
+  background-color: #1a5e7d; /* Azul mais escuro ao clicar */
+  transform: translateY(0); /* Volta ao nível inicial */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.button:disabled {
+  background-color: #bdc3c7; /* Cinza claro para desabilitado */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .cadastro-clientes {
   padding: 20px;
   text-align: center; /* Centraliza o texto da página */
+  /* margin-top: -40px;  */
 }
 
 h2 {
@@ -231,17 +292,21 @@ h3 {
 }
 
 .grid-container {
-  display: grid; /* Ativa o layout em grid */
-  grid-template-columns: repeat(3, 1fr); /* Define 3 colunas */
-  gap: 15px; /* Espaço entre as colunas e linhas */
-  justify-items: center; /* Centraliza os itens nas colunas */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
 }
-
 .form-group {
   display: flex;
-  flex-direction: column; /* Coloca o label e o input um embaixo do outro */
-  width: 100%; /* Garante que os grupos de formulário ocupem toda a largura */
-  max-width: 250px; /* Define um limite de largura para os campos */
+  flex-direction: column;
+  margin-right: 50px;
+}
+
+.full-width {
+  grid-column: span 3;
+  /* width: 100%; */
+  display: flex;
+  flex-direction: column;
 }
 
 label {
