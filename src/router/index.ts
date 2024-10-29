@@ -9,22 +9,38 @@ const routes: Array<RouteRecordRaw> = [
     path: "/home",
     name: "Home",
     component: Home,
+    meta: { title: "Página Inicial" },
+  },
+  {
+    path: "/",
+    name: "Home",
+    component: Home,
+    meta: { title: "Página Inicial" },
   },
   {
     path: "/lista-clientes",
     name: "ListaClientes",
     component: ListaClientes,
+    meta: { title: "Lista de Clientes" },
   },
   {
     path: "/cadastro-cliente",
     name: "CadastroCliente",
     component: CadastroCliente,
+    meta: { title: "Cadastro de Cliente" },
   },
 ];
 
 const router = createRouter({
   history: createWebHistory(), // Use createWebHistory para Vite
   routes,
+});
+
+// Atualiza o título do documento conforme a rota
+router.afterEach((to: any) => {
+  if (to.meta.title) {
+    document.title = to.meta.title;
+  }
 });
 
 export default router;

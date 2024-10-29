@@ -3,6 +3,7 @@
     <button class="toggle-button" @click="toggleSidebar">
       {{ isCollapsed ? "☰" : "✕" }}
     </button>
+    <img src="/public/icons/favicon-96.png" alt="Logo" class="sidebar-logo" />
     <div v-if="!isCollapsed">
       <h2>Menu</h2>
       <ul>
@@ -13,8 +14,6 @@
         <li>
           <router-link to="/cadastro-cliente">Cadastro de Cliente</router-link>
         </li>
-        <li><a href="#">Produtos</a></li>
-        <li><a href="#">Fornecedores</a></li>
       </ul>
     </div>
   </div>

@@ -4,7 +4,6 @@
     <Sidebar />
     <div class="main-content">
       <router-view />
-      <!-- Este é o ponto onde as rotas renderizam -->
     </div>
   </div>
 </template>
@@ -25,7 +24,6 @@ export default defineComponent({
 .app-container {
   display: flex; /* Usar flex para alinhar sidebar e conteúdo */
 }
-
 .main-content {
   flex-grow: 1; /* Permite que o conteúdo ocupe o restante do espaço */
   padding: 20px; /* Adicione algum preenchimento para o conteúdo */
