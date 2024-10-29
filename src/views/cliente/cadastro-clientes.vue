@@ -5,19 +5,30 @@
       <div class="grid-container">
         <div class="form-group">
           <label for="cnpj">CNPJ:</label>
-          <input type="text" id="cnpj" v-model="clienteForm.cnpj" required />
+          <input
+            type="text"
+            id="cnpj"
+            v-model="clienteForm.cnpj"
+            required
+            @change="validaCnpj"
+          />
         </div>
         <div class="form-group">
           <label for="nome">Nome:</label>
           <input type="text" id="nome" v-model="clienteForm.nome" required />
         </div>
         <div class="form-group">
-          <label for="fornecedor_id">Fornecedor ID:</label>
-          <input
-            type="text"
-            id="fornecedor_id"
-            v-model="clienteForm.fornecedor_id"
-          />
+          <label for="fornecedor_id">Fornecedor:</label>
+          <select id="fornecedor_id" v-model="clienteForm.fornecedor_id">
+            <option value="" disabled>Selecione um fornecedor</option>
+            <option
+              v-for="fornecedor in fornecedores"
+              :key="fornecedor.id"
+              :value="fornecedor.id"
+            >
+              {{ fornecedor.nome }}
+            </option>
+          </select>
         </div>
       </div>
 
@@ -39,6 +50,7 @@
             type="text"
             id="cep_cob"
             v-model="clienteForm.cep_cob"
+            @change="validaCepCob"
             required
           />
         </div>
@@ -108,6 +120,7 @@
             type="text"
             id="cep_ent"
             v-model="clienteForm.cep_ent"
+            @change="validaCepEnt"
             required
           />
         </div>
@@ -168,6 +181,7 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 interface clienteForm {
   cnpj: string;
@@ -193,6 +207,7 @@ export default defineComponent({
   name: "CadastroClientes",
   setup() {
     const isSubmitting = ref(false);
+
     const clienteForm = ref<clienteForm>({
       cnpj: "",
       nome: "",
@@ -214,8 +229,6 @@ export default defineComponent({
     });
 
     const createCliente = async () => {
-      // if (isSubmitting.value) return;
-      // isSubmitting.value = true;
       try {
         const response = await axios.post(
           "http://localhost:5052/api/cliente/create",
@@ -227,16 +240,126 @@ export default defineComponent({
       }
     };
 
+    const validaCnpj = () => {
+      clienteForm.value.cnpj = clienteForm.value.cnpj.replace(/\D/g, "");
+      const cnpjLimpo = clienteForm.value.cnpj;
+
+      if (cnpjLimpo.length !== 14 && cnpjLimpo.length !== 0) {
+        Swal.fire({
+          title: "Erro CNPJ!",
+          text: "CNPJ deve contter 14 digitos",
+          icon: "warning",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+          },
+        });
+        clienteForm.value.cnpj = "";
+        return;
+      }
+      if (/^(\d)\1+$/.test(cnpjLimpo)) {
+        Swal.fire({
+          title: "Erro CNPJ!",
+          text: "CNPJ inválido!",
+          icon: "warning",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+          },
+        });
+        clienteForm.value.cnpj = "";
+        return;
+      }
+      let soma = 0;
+      let peso = 5;
+
+      for (let i = 0; i < 12; i++) {
+        soma += parseInt(cnpjLimpo.charAt(i), 10) * peso;
+        peso = peso === 2 ? 9 : peso - 1;
+      }
+
+      let digito1 = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+      if (parseInt(cnpjLimpo.charAt(12), 10) === digito1) {
+        soma = 0;
+        peso = 6;
+        for (let i = 0; i < 13; i++) {
+          soma += parseInt(cnpjLimpo.charAt(i), 10) * peso;
+          peso = peso === 2 ? 9 : peso - 1;
+        }
+
+        let digito2 = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+        console.log(parseInt(cnpjLimpo.charAt(13), 10));
+
+        if (parseInt(cnpjLimpo.charAt(13), 10) !== digito2) {
+          Swal.fire({
+            title: "Erro CNPJ!",
+            text: "CNPJ inválido!",
+            icon: "warning",
+            confirmButtonText: "Ok",
+            customClass: {
+              popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+            },
+          });
+          clienteForm.value.cnpj = "";
+          return;
+        }
+      }
+    };
+
+    const validaCepCob = () => {
+      clienteForm.value.cep_cob = clienteForm.value.cep_cob.replace(/\D/g, "");
+      const regex = /^\d{5}-?\d{3}$/;
+      if (!regex.test(clienteForm.value.cep_cob)) {
+        Swal.fire({
+          title: "Erro CEP!",
+          text: "CEP inválido!",
+          icon: "warning",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+          },
+        });
+        clienteForm.value.cep_cob = "";
+        return;
+      }
+    };
+
+    const validaCepEnt = () => {
+      clienteForm.value.cep_ent = clienteForm.value.cep_ent.replace(/\D/g, "");
+      const regex = /^\d{5}-?\d{3}$/;
+      if (!regex.test(clienteForm.value.cep_cob)) {
+        Swal.fire({
+          title: "Erro CEP!",
+          text: "CEP inválido!",
+          icon: "warning",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+          },
+        });
+        clienteForm.value.cep_cob = "";
+        return;
+      }
+    };
+
     return {
       clienteForm,
       createCliente,
       isSubmitting,
+      validaCnpj,
+      validaCepCob,
+      validaCepEnt,
     };
   },
 });
 </script>
 
 <style scoped>
+.custom-popup {
+  border-radius: 10px;
+  background-color: #f0f8ff;
+  color: #333;
+}
 .button {
   padding: 10px 20px;
   background-color: #3498db; /* Azul claro */
@@ -314,6 +437,20 @@ label {
 }
 
 input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Faz os inputs ocuparem toda a largura do grupo */
+}
+
+select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%; /* Faz os inputs ocuparem toda a largura do grupo */
+}
+
+option {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
