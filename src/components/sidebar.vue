@@ -18,12 +18,12 @@
         </li>
         <ul v-if="isClientesMenuOpen" class="submenu">
           <li>
-            <router-link to="/lista-clientes">Lista de Clientes</router-link>
+            <router-link to="/cadastro-cliente"
+              >Cadastrar de Cliente</router-link
+            >
           </li>
           <li>
-            <router-link to="/cadastro-cliente"
-              >Cadastro de Cliente</router-link
-            >
+            <router-link to="/lista-clientes">Lista de Clientes</router-link>
           </li>
         </ul>
         <!-- <li><a href="#">Produtos</a></li>

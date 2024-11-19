@@ -3,6 +3,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import Home from "../views/home.vue";
 import ListaClientes from "../views/cliente/lista-clientes.vue";
 import CadastroCliente from "../views/cliente/cadastro-clientes.vue";
+import EditarClientes from "../views/cliente/editar-cliente.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -22,12 +23,20 @@ const routes: Array<RouteRecordRaw> = [
     name: "ListaClientes",
     component: ListaClientes,
     meta: { title: "Lista de Clientes" },
+    props: true,
   },
   {
     path: "/cadastro-cliente",
     name: "CadastroCliente",
     component: CadastroCliente,
     meta: { title: "Cadastro de Cliente" },
+  },
+  {
+    path: "/editar-cliente/:idRegistro",
+    name: "EditarClientes",
+    component: EditarClientes,
+    meta: { title: "Editar de Cliente" },
+    props: true,
   },
 ];
 

@@ -1,15 +1,19 @@
 <!-- src/views/CadastroClientes.vue -->
 <template>
   <div class="cadastro-clientes">
-    <form @submit.prevent="createCliente">
+    <form @submit.prevent="editaCliente">
       <div class="grid-container">
+        <div class="form-group">
+          <label for="idRegistro">ID Registro:</label>
+          <input type="text" id="idRegistro" v-model="idRegistro" disabled />
+        </div>
         <div class="form-group">
           <label for="cnpj">CNPJ:</label>
           <input
             type="text"
             id="cnpj"
-            v-model="clienteForm.cnpj"
             required
+            v-model="clienteForm.cnpj"
             @change="validaCnpj"
           />
         </div>
@@ -25,9 +29,9 @@
               v-for="fornecedor in fornecedores"
               :key="fornecedor.id"
               :value="fornecedor.id"
-            > -->
-            <!-- {{ fornecedor.nome }} -->
-            <!-- </option> -->
+            >
+              {{ fornecedor.nome }}
+            </option> -->
           </select>
         </div>
       </div>
@@ -171,7 +175,11 @@
         <div class="form-group"></div>
 
         <button class="button" type="submit" :disabled="isSubmitting">
-          Cadastrar Cliente
+          Salvar Cliente
+        </button>
+
+        <button class="button" type="button" @click="deleteCliente">
+          Excluir Cliente
         </button>
       </div>
     </form>
@@ -179,10 +187,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 interface clienteForm {
   cnpj: string;
@@ -205,10 +213,11 @@ interface clienteForm {
 }
 
 export default defineComponent({
-  name: "CadastroClientes",
+  name: "EditarClientes",
   setup() {
     const isSubmitting = ref(false);
     const router = useRouter();
+    const idRegistro = useRoute()?.params?.idRegistro;
 
     const clienteForm = ref<clienteForm>({
       cnpj: "",
@@ -230,17 +239,71 @@ export default defineComponent({
       rua_ent: "",
     });
 
-    const createCliente = async () => {
+    interface Cliente {
+      id: string;
+      cnpj: string;
+      nome: string;
+      fornecedor_id: string;
+      bairro_cob: string;
+      bairro_ent: string;
+      cep_cob: string;
+      cep_ent: string;
+      cidade_cob: string;
+      cidade_ent: string;
+      complemento_cob: string;
+      complemento_ent: string;
+      estado_cob: string;
+      estado_ent: string;
+      pais_cob: string;
+      pais_ent: string;
+      rua_cob: string;
+      rua_ent: string;
+      create_at?: Date;
+      update_at?: Date;
+    }
+    const getRegistro = ref<Cliente[]>([]);
+
+    const getRegistroById = async () => {
       try {
-        const response = await axios.post(
-          "http://localhost:5052/api/cliente/create",
+        let response = await axios.get(
+          `http://localhost:5052/api/cliente/consult/${idRegistro}`
+        );
+        const clienteConsultado: Cliente = response.data.data.at(0);
+        clienteForm.value.cnpj = clienteConsultado?.cnpj;
+        clienteForm.value.nome = clienteConsultado?.nome;
+        // clienteForm.value.fornecedor_id = clienteConsultado?.fornecedor_id;
+        clienteForm.value.bairro_cob = clienteConsultado?.bairro_cob;
+        clienteForm.value.cep_cob = clienteConsultado?.cep_cob;
+        clienteForm.value.cidade_cob = clienteConsultado?.cidade_cob;
+        clienteForm.value.complemento_cob = clienteConsultado?.complemento_cob;
+        clienteForm.value.estado_cob = clienteConsultado?.estado_cob;
+        clienteForm.value.pais_cob = clienteConsultado?.pais_cob;
+        clienteForm.value.rua_cob = clienteConsultado?.rua_cob;
+        clienteForm.value.bairro_ent = clienteConsultado?.bairro_ent;
+        clienteForm.value.cep_ent = clienteConsultado?.cep_ent;
+        clienteForm.value.cidade_ent = clienteConsultado?.cidade_ent;
+        clienteForm.value.complemento_ent = clienteConsultado?.complemento_ent;
+        clienteForm.value.estado_ent = clienteConsultado?.estado_ent;
+        clienteForm.value.pais_ent = clienteConsultado?.pais_ent;
+        clienteForm.value.rua_ent = clienteConsultado?.rua_ent;
+      } catch (error) {
+        console.error("Erro ao buscar registro:", error);
+      }
+    };
+
+    const editaCliente = async () => {
+      try {
+        const response = await axios.put(
+          `http://localhost:5052/api/cliente/update/${idRegistro}`,
           clienteForm.value
         );
-        console.log(response);
-
+        console.log(response.data.status);
+        if (!response.data.status) {
+          throw new Error("Erro ao atualizar cliente");
+        }
         await Swal.fire({
-          title: "Cliente Criado!",
-          text: "Cliente criado com sucesso!",
+          title: "Cliente Atualizado!",
+          text: "Cliente editado com sucesso!",
           icon: "success",
           confirmButtonText: "Ok",
           customClass: {
@@ -249,7 +312,36 @@ export default defineComponent({
         });
         router.push(`/lista-clientes`);
       } catch (error) {
-        console.error("Erro ao enviar:", error);
+        await Swal.fire({
+          title: "Erro ao Atualizar cliente!",
+          icon: "error",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup",
+          },
+        });
+        console.log(error);
+      }
+    };
+
+    const deleteCliente = async () => {
+      try {
+        const response = await axios.delete(
+          `http://localhost:5052/api/cliente/delete/${idRegistro}`
+        );
+
+        await Swal.fire({
+          title: "Cliente Excluído!",
+          text: "Cliente excluido com sucesso!",
+          icon: "success",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup",
+          },
+        });
+        router.push(`/lista-clientes`);
+      } catch (error) {
+        console.log("Erro ao deletar:", error);
       }
     };
 
@@ -310,7 +402,7 @@ export default defineComponent({
             icon: "warning",
             confirmButtonText: "Ok",
             customClass: {
-              popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+              popup: "custom-popup",
             },
           });
           clienteForm.value.cnpj = "";
@@ -345,8 +437,6 @@ export default defineComponent({
         const response = await axios.post(
           `http://localhost:4001/api/cep/${cep}`
         );
-        console.log(response.data);
-
         clienteForm.value.bairro_ent = response.data.bairro;
         clienteForm.value.cep_ent = response.data.cep;
         clienteForm.value.cidade_ent = response.data.localidade;
@@ -374,41 +464,42 @@ export default defineComponent({
         });
         clienteForm.value.cep_cob = "";
         return;
-      } else {
-        consultaCep(clienteForm.value.cep_cob);
-        return;
       }
     };
 
     const validaCepEnt = () => {
       clienteForm.value.cep_ent = clienteForm.value.cep_ent.replace(/\D/g, "");
       const regex = /^\d{5}-?\d{3}$/;
-      // if (!regex.test(clienteForm.value.cep_cob)) {
-      //   Swal.fire({
-      //     title: "Erro CEP!",
-      //     text: "CEP inválido!",
-      //     icon: "warning",
-      //     confirmButtonText: "Ok",
-      //     customClass: {
-      //       popup: "custom-popup", // Classe personalizada, se você quiser adicionar
-      //     },
-      //   });
-      //   clienteForm.value.cep_cob = "";
-      //   return;
-      // }
+      if (!regex.test(clienteForm.value.cep_cob)) {
+        Swal.fire({
+          title: "Erro CEP!",
+          text: "CEP inválido!",
+          icon: "warning",
+          confirmButtonText: "Ok",
+          customClass: {
+            popup: "custom-popup", // Classe personalizada, se você quiser adicionar
+          },
+        });
+        clienteForm.value.cep_cob = "";
+        return;
+      } else {
+        consultaCep(clienteForm.value.cep_ent);
+        return;
+      }
     };
 
-    // const buscaFornecedores = ()=>{
-
-    // }
+    onMounted(getRegistroById);
 
     return {
       clienteForm,
-      createCliente,
+      editaCliente,
       isSubmitting,
       validaCnpj,
       validaCepCob,
       validaCepEnt,
+      idRegistro,
+      getRegistro,
+      deleteCliente,
     };
   },
 });
